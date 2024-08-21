@@ -1,0 +1,19 @@
+{
+  "name": "spel-checker",
+  "version": "1.0.0",
+  "description": "a normal spell checker",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express.js": "^1.0.0",
+    "nodemon": "^3.1.4",
+    "pg": "^8.12.0",
+    "simple-spellchecker": "^1.0.2"
+  }
+}
