@@ -28,7 +28,7 @@ app.post('/insertdata', async (req, res) => {
     'INSERT INTO data (firstName, lastName, email, password, mobile) VALUES ($1, $2, $3,$4,$5) RETURNING *',
     [firstName, lastName, email, password,mobile]
   );
-  res.json({status:1,data:newData.rows[0]});
+  res.json({status:1,data:newData.rows[0],message:"Data added Successfully"});
 });
 
 // READ
@@ -45,7 +45,7 @@ app.post('/updateData', async (req, res) => {
     'UPDATE data SET firstname = $1, lastname = $2, email = $3, password=$4, mobile=$5 WHERE data_id = $6 RETURNING *',
     [firstname, lastname, email, password,mobile, data_id]
   );
-  res.json({status:1,data:updatedData.rows[0]});
+  res.json({status:1,data:updatedData.rows[0],message:"Data Updated Successfully"});
 });
 
 // DELETE
