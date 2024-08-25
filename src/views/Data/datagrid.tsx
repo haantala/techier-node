@@ -39,6 +39,7 @@ const columns: readonly Column[] = [
 const StickyHeadTable = () => {
   const dispatch = useDispatch()
   const [page, setPage] = React.useState(0)
+  const [FilterData, setFilterData] = React.useState<string | undefined>(undefined)
   const [rowsPerPage, setRowsPerPage] = React.useState(10)
   const [dialog, setDialog] = React.useState(false)
   const [editingRow, setEditingRow] = React.useState<number | null>(null)
@@ -64,6 +65,23 @@ const StickyHeadTable = () => {
     } catch (err) {
       alert(err)
     }
+  }
+
+  const handleDataFilter = () => {
+    if (!FilterData) {
+      return Datalist
+    }
+
+    const searchTerm = FilterData.toLowerCase()
+
+    return Datalist.filter((row: any) => {
+      const matchDataFirstName = row?.firstname?.toLowerCase().includes(searchTerm)
+      const matchDataLastName = row?.lastname?.toLowerCase().includes(searchTerm)
+      const matchDataEmail = row?.email?.toLowerCase().includes(searchTerm)
+      const matchDataMobile = row?.mobile?.toLowerCase().includes(searchTerm)
+
+      return matchDataFirstName || matchDataLastName || matchDataEmail || matchDataMobile
+    })
   }
 
   React.useEffect(() => {
@@ -133,6 +151,7 @@ const StickyHeadTable = () => {
             size='small'
             name='search'
             label='Search'
+            onChange={e => setFilterData(e.target.value)}
           />
           <Button variant='contained' onClick={() => setDialog(true)} color='primary' sx={{ mr: 2 }}>
             Add
@@ -152,8 +171,9 @@ const StickyHeadTable = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Datalist.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
-                (row: { [x: string]: any; data_id: React.Key | null | undefined }, index: number) => (
+              {(FilterData?.length ? handleDataFilter() : Datalist)
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row: { [x: string]: any; data_id: React.Key | null | undefined }, index: number) => (
                   <TableRow hover role='checkbox' tabIndex={-1} key={row.data_id}>
                     {columns.map(column => {
                       const value = column.id === 'serial' ? page * rowsPerPage + index + 1 : row[column.id]
@@ -209,15 +229,14 @@ const StickyHeadTable = () => {
                       )
                     })}
                   </TableRow>
-                )
-              )}
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 25, 100]}
           component='div'
-          count={Datalist.length}
+          count={FilterData?.length ? handleDataFilter()?.lenght : Datalist.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
