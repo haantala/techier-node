@@ -11,6 +11,7 @@ import classnames from 'classnames'
 import NavToggle from './NavToggle'
 import NavSearch from '@components/layout/shared/search'
 import ModeDropdown from '@components/layout/shared/ModeDropdown'
+
 import UserDropdown from '@components/layout/shared/UserDropdown'
 
 // Util Imports
@@ -24,14 +25,10 @@ const NavbarContent = () => {
         <NavSearch />
       </div>
       <div className='flex items-center'>
-        <Link
-          className='flex mie-2'
-          href={`https://github.com/themeselection/${process.env.NEXT_PUBLIC_REPO_NAME}`}
-          target='_blank'
-        >
+        <Link className='flex mie-2' href={`https://github.com/haantala`} target='_blank'>
           <img
             height={24}
-            alt='GitHub Repo stars'
+            alt='GitHub Repo Harsh Antala'
             src={`https://img.shields.io/github/stars/themeselection/${process.env.NEXT_PUBLIC_REPO_NAME}`}
           />
         </Link>
