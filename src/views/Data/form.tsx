@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 
 import Button from '@mui/material/Button'
@@ -8,13 +10,12 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 
-// import { useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 
-// import { insertDataList } from '../../redux/reducers/data'
-// import { insertData } from '../../@core/api/common_api'
-// import { handleToast } from '../../utils/utils'
+import { insertDataList } from '@/redux/reducers/data' // Adjust path if necessary
+import { insertData } from '@/@core/api/common_api' // Adjust path if necessary
+import { handleToast } from '@/utils/utils'
 
-// Define props type
 interface UserFormProps {
   setDialog: (open: boolean) => void
 }
@@ -22,30 +23,29 @@ interface UserFormProps {
 const defaultTheme = createTheme()
 
 const UserForm: React.FC<UserFormProps> = ({ setDialog }) => {
-  // const dispatch = useDispatch()
+  const dispatch = useDispatch()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    const data = new FormData(event.currentTarget)
 
-    // const data = new FormData(event.currentTarget)
+    try {
+      const res = await insertData({
+        email: data.get('email') as string,
+        password: data.get('password') as string,
+        firstName: data.get('firstName') as string,
+        lastName: data.get('lastName') as string,
+        mobile: data.get('mobile') as string
+      })
 
-    // try {
-    //   const res = await insertData({
-    //     email: data.get('email') as string,
-    //     password: data.get('password') as string,
-    //     firstName: data.get('firstName') as string,
-    //     lastName: data.get('lastName') as string,
-    //     mobile: data.get('mobile') as string
-    //   })
-
-    //   if (res.status === 1) {
-    //     dispatch(insertDataList(res.data))
-    //     setDialog(false)
-    //     handleToast(res.status, res.description)
-    //   }
-    // } catch (err) {
-    //   alert(err)
-    // }
+      if (res.status === 1) {
+        dispatch(insertDataList(res.data))
+        setDialog(false)
+        handleToast(res.status, res.description)
+      }
+    } catch (err) {
+      alert(err)
+    }
   }
 
   return (

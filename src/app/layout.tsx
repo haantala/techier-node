@@ -1,5 +1,9 @@
+'use client'
+
 // Third-party Imports
 import 'react-perfect-scrollbar/dist/css/styles.css'
+import { ToastContainer } from 'react-toastify'
+import { Provider } from 'react-redux'
 
 // Type Imports
 import type { ChildrenType } from '@core/types'
@@ -10,11 +14,7 @@ import '@/app/globals.css'
 // Generated Icon CSS Imports
 import '@assets/iconify-icons/generated-icons.css'
 
-export const metadata = {
-  title: 'Demo: Materio - NextJS Dashboard Free',
-  description:
-    'Develop next-level web apps with Materio Dashboard Free - NextJS. Now, updated with lightning-fast routing powered by MUI and App router.'
-}
+import { store } from '@/redux/store'
 
 const RootLayout = ({ children }: ChildrenType) => {
   // Vars
@@ -22,7 +22,12 @@ const RootLayout = ({ children }: ChildrenType) => {
 
   return (
     <html id='__next' dir={direction}>
-      <body className='flex is-full min-bs-full flex-auto flex-col'>{children}</body>
+      <body className='flex is-full min-bs-full flex-auto flex-col'>
+        <Provider store={store}>
+          {children}
+          <ToastContainer />
+        </Provider>
+      </body>
     </html>
   )
 }

@@ -10,80 +10,40 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TablePagination from '@mui/material/TablePagination'
 import TableRow from '@mui/material/TableRow'
-import { Button, Card, Dialog, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
+import { Button, Card, Dialog, DialogContent, DialogTitle, IconButton, Stack, TextField, Tooltip } from '@mui/material'
+import { useDispatch, useSelector } from 'react-redux'
+import { Icon } from '@iconify-icon/react'
 
 import UserForm from './form'
+import { deleteData, getData, updateData } from '@/@core/api/common_api'
+import { deleteDataList, getDataList, updateDataList } from '@/redux/reducers/data'
+import { deleteSweetAlert, handleToast } from '@/utils/utils'
 
 interface Column {
-  id: 'name' | 'code' | 'population' | 'size' | 'density'
+  id: 'serial' | 'data_id' | 'firstname' | 'lastname' | 'mobile' | 'email' | 'actions'
   label: string
   minWidth?: number
-  align?: 'right'
-  format?: (value: number) => string
+  align?: 'center'
+  format?: (value: any) => string
 }
 
 const columns: readonly Column[] = [
-  { id: 'name', label: 'Name', minWidth: 170 },
-  { id: 'code', label: 'ISO\u00a0Code', minWidth: 100 },
-  {
-    id: 'population',
-    label: 'Population',
-    minWidth: 170,
-    align: 'right',
-    format: (value: number) => value.toLocaleString('en-US')
-  },
-  {
-    id: 'size',
-    label: 'Size\u00a0(km\u00b2)',
-    minWidth: 170,
-    align: 'right',
-    format: (value: number) => value.toLocaleString('en-US')
-  },
-  {
-    id: 'density',
-    label: 'Density',
-    minWidth: 170,
-    align: 'right',
-    format: (value: number) => value.toFixed(2)
-  }
+  { id: 'serial', label: 'No.', minWidth: 50 },
+  { id: 'firstname', label: 'First Name', minWidth: 170, align: 'center' },
+  { id: 'lastname', label: 'Last Name', minWidth: 170, align: 'center' },
+  { id: 'mobile', label: 'Mobile No.', minWidth: 170, align: 'center' },
+  { id: 'email', label: 'Email Id', minWidth: 170, align: 'center' },
+  { id: 'actions', label: 'Actions', minWidth: 150 }
 ]
 
-interface Data {
-  name: string
-  code: string
-  population: number
-  size: number
-  density: number
-}
-
-function createData(name: string, code: string, population: number, size: number): Data {
-  const density = population / size
-
-  return { name, code, population, size, density }
-}
-
-const rows = [
-  createData('India', 'IN', 1324171354, 3287263),
-  createData('China', 'CN', 1403500365, 9596961),
-  createData('Italy', 'IT', 60483973, 301340),
-  createData('United States', 'US', 327167434, 9833520),
-  createData('Canada', 'CA', 37602103, 9984670),
-  createData('Australia', 'AU', 25475400, 7692024),
-  createData('Germany', 'DE', 83019200, 357578),
-  createData('Ireland', 'IE', 4857000, 70273),
-  createData('Mexico', 'MX', 126577691, 1972550),
-  createData('Japan', 'JP', 126317000, 377973),
-  createData('France', 'FR', 67022000, 640679),
-  createData('United Kingdom', 'GB', 67545757, 242495),
-  createData('Russia', 'RU', 146793744, 17098246),
-  createData('Nigeria', 'NG', 200962417, 923768),
-  createData('Brazil', 'BR', 210147125, 8515767)
-]
-
-export default function StickyHeadTable() {
+const StickyHeadTable = () => {
+  const dispatch = useDispatch()
   const [page, setPage] = React.useState(0)
   const [rowsPerPage, setRowsPerPage] = React.useState(10)
   const [dialog, setDialog] = React.useState(false)
+  const [editingRow, setEditingRow] = React.useState<number | null>(null)
+  const [editedRowData, setEditedRowData] = React.useState<any>({})
+  const { Datalist } = useSelector((store: any) => store.Data)
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage)
@@ -92,6 +52,72 @@ export default function StickyHeadTable() {
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(+event.target.value)
     setPage(0)
+  }
+
+  const handleGetData = async () => {
+    try {
+      const res = await getData()
+
+      if (res.status) {
+        dispatch(getDataList(res.data))
+      }
+    } catch (err) {
+      alert(err)
+    }
+  }
+
+  React.useEffect(() => {
+    if (Datalist?.length === 0) {
+      handleGetData()
+    }
+  }, [Datalist])
+
+  const handleEdit = (row: any) => {
+    setEditingRow(row.data_id)
+    setEditedRowData(row)
+  }
+
+  const handleDeleteData = async (id: any) => {
+    try {
+      const result = await deleteSweetAlert({})
+
+      if (result.isConfirmed) {
+        const res = await deleteData({ data_id: id })
+
+        if (res.status === 1) {
+          dispatch(deleteDataList(id))
+          handleToast(res.status, res.description)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedRowData({
+      ...editedRowData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const handleSave = async () => {
+    try {
+      const res = await updateData(editedRowData)
+
+      if (res.status === 1) {
+        dispatch(updateDataList(res.data))
+        handleToast(res.status, res.description)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+
+    setEditingRow(null)
+  }
+
+  const handleCancel = () => {
+    setEditingRow(null)
   }
 
   return (
@@ -107,9 +133,6 @@ export default function StickyHeadTable() {
             size='small'
             name='search'
             label='Search'
-
-            // value={FilterData}
-            // onChange={(e) => setFilterData(e.target.value)}
           />
           <Button variant='contained' onClick={() => setDialog(true)} color='primary' sx={{ mr: 2 }}>
             Add
@@ -129,36 +152,80 @@ export default function StickyHeadTable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
-                return (
-                  <TableRow hover role='checkbox' tabIndex={-1} key={row.code}>
+              {Datalist.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
+                (row: { [x: string]: any; data_id: React.Key | null | undefined }, index: number) => (
+                  <TableRow hover role='checkbox' tabIndex={-1} key={row.data_id}>
                     {columns.map(column => {
-                      const value = row[column.id]
+                      const value = column.id === 'serial' ? page * rowsPerPage + index + 1 : row[column.id]
+                      const isEditing = editingRow === row.data_id
 
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number' ? column.format(value) : value}
+                          {column.id === 'actions' ? (
+                            <React.Fragment>
+                              {editingRow !== null ? (
+                                <React.Fragment>
+                                  <Tooltip title='Save' arrow key='save'>
+                                    <IconButton color='success' onClick={handleSave}>
+                                      <Icon icon='weui:done-filled' />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title='Cancel' arrow key='cancel'>
+                                    <IconButton color='error' onClick={handleCancel}>
+                                      <Icon icon='weui:close-filled' />
+                                    </IconButton>
+                                  </Tooltip>
+                                </React.Fragment>
+                              ) : (
+                                <React.Fragment>
+                                  <Tooltip title='Edit' arrow key='edit'>
+                                    <IconButton color='success' onClick={() => handleEdit(row)}>
+                                      <Icon icon='akar-icons:edit' />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title='Delete' arrow key='delete'>
+                                    <IconButton onClick={() => handleDeleteData(row.data_id)} color='error'>
+                                      <Icon icon='maki:waste-basket' />
+                                    </IconButton>
+                                  </Tooltip>
+                                </React.Fragment>
+                              )}
+                            </React.Fragment>
+                          ) : column.id === 'serial' ? (
+                            value
+                          ) : isEditing ? (
+                            <TextField
+                              name={column.id}
+                              value={editedRowData[column.id] || ''}
+                              onChange={handleFieldChange}
+                              size='small'
+                            />
+                          ) : column.format ? (
+                            column.format(value)
+                          ) : (
+                            value
+                          )}
                         </TableCell>
                       )
                     })}
                   </TableRow>
                 )
-              })}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 25, 100]}
           component='div'
-          count={rows.length}
+          count={Datalist.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <Dialog open={dialog} onClose={() => setDialog(false)} fullWidth maxWidth='xs'>
-        <DialogTitle>Add Data</DialogTitle>
+      <Dialog open={dialog} onClose={handleCancel} fullWidth maxWidth='xs'>
+        <DialogTitle>{'Add Data'}</DialogTitle>
         <DialogContent>
           <UserForm setDialog={setDialog} />
         </DialogContent>
@@ -166,3 +233,5 @@ export default function StickyHeadTable() {
     </React.Fragment>
   )
 }
+
+export default StickyHeadTable

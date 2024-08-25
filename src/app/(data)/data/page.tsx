@@ -1,10 +1,8 @@
-// MUI Imports
+'use client'
+
 import Grid from '@mui/material/Grid'
 
-// import Award from '@/views/dashboard/Award'
-import StickyHeadTable from '@/views/Data/datagrid'
-
-// Components Imports
+import StickyHeadTable from '@/views/Data/datagrid' // Adjust import path as needed
 
 const DashboardAnalytics = () => {
   return (
