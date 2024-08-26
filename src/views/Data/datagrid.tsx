@@ -42,7 +42,7 @@ const StickyHeadTable = () => {
   const [FilterData, setFilterData] = React.useState<string | undefined>(undefined)
   const [rowsPerPage, setRowsPerPage] = React.useState(10)
   const [dialog, setDialog] = React.useState(false)
-  const [editingRow, setEditingRow] = React.useState<number | null>(null)
+  const [editingRowId, setEditingRowId] = React.useState<number | null>(null)
   const [editedRowData, setEditedRowData] = React.useState<any>({})
   const { Datalist } = useSelector((store: any) => store.Data)
 
@@ -91,7 +91,7 @@ const StickyHeadTable = () => {
   }, [Datalist])
 
   const handleEdit = (row: any) => {
-    setEditingRow(row.data_id)
+    setEditingRowId(row.data_id)
     setEditedRowData(row)
   }
 
@@ -131,12 +131,15 @@ const StickyHeadTable = () => {
       console.error(err)
     }
 
-    setEditingRow(null)
+    setEditingRowId(null)
   }
 
   const handleCancel = () => {
-    setEditingRow(null)
+    setEditingRowId(null)
   }
+
+  const filteredData = handleDataFilter()
+  const displayedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 
   return (
     <React.Fragment>
@@ -171,72 +174,70 @@ const StickyHeadTable = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(FilterData?.length ? handleDataFilter() : Datalist)
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row: { [x: string]: any; data_id: React.Key | null | undefined }, index: number) => (
-                  <TableRow hover role='checkbox' tabIndex={-1} key={row.data_id}>
-                    {columns.map(column => {
-                      const value = column.id === 'serial' ? page * rowsPerPage + index + 1 : row[column.id]
-                      const isEditing = editingRow === row.data_id
+              {displayedData.map((row: { [x: string]: any; data_id: React.Key | null | undefined }, index: number) => (
+                <TableRow hover role='checkbox' tabIndex={-1} key={row.data_id}>
+                  {columns.map(column => {
+                    const value = column.id === 'serial' ? page * rowsPerPage + index + 1 : row[column.id]
+                    const isEditing = editingRowId === row.data_id
 
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.id === 'actions' ? (
-                            <React.Fragment>
-                              {editingRow !== null ? (
-                                <React.Fragment>
-                                  <Tooltip title='Save' arrow key='save'>
-                                    <IconButton color='success' onClick={handleSave}>
-                                      <Icon icon='weui:done-filled' />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title='Cancel' arrow key='cancel'>
-                                    <IconButton color='error' onClick={handleCancel}>
-                                      <Icon icon='weui:close-filled' />
-                                    </IconButton>
-                                  </Tooltip>
-                                </React.Fragment>
-                              ) : (
-                                <React.Fragment>
-                                  <Tooltip title='Edit' arrow key='edit'>
-                                    <IconButton color='success' onClick={() => handleEdit(row)}>
-                                      <Icon icon='akar-icons:edit' />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title='Delete' arrow key='delete'>
-                                    <IconButton onClick={() => handleDeleteData(row.data_id)} color='error'>
-                                      <Icon icon='maki:waste-basket' />
-                                    </IconButton>
-                                  </Tooltip>
-                                </React.Fragment>
-                              )}
-                            </React.Fragment>
-                          ) : column.id === 'serial' ? (
-                            value
-                          ) : isEditing ? (
-                            <TextField
-                              name={column.id}
-                              value={editedRowData[column.id] || ''}
-                              onChange={handleFieldChange}
-                              size='small'
-                            />
-                          ) : column.format ? (
-                            column.format(value)
-                          ) : (
-                            value
-                          )}
-                        </TableCell>
-                      )
-                    })}
-                  </TableRow>
-                ))}
+                    return (
+                      <TableCell key={column.id} align={column.align}>
+                        {column.id === 'actions' ? (
+                          <React.Fragment>
+                            {editingRowId === row.data_id ? (
+                              <React.Fragment>
+                                <Tooltip title='Save' arrow>
+                                  <IconButton color='success' onClick={handleSave}>
+                                    <Icon icon='weui:done-filled' />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title='Cancel' arrow>
+                                  <IconButton color='error' onClick={handleCancel}>
+                                    <Icon icon='weui:close-filled' />
+                                  </IconButton>
+                                </Tooltip>
+                              </React.Fragment>
+                            ) : (
+                              <React.Fragment>
+                                <Tooltip title='Edit' arrow>
+                                  <IconButton color='success' onClick={() => handleEdit(row)}>
+                                    <Icon icon='akar-icons:edit' />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title='Delete' arrow>
+                                  <IconButton onClick={() => handleDeleteData(row.data_id)} color='error'>
+                                    <Icon icon='maki:waste-basket' />
+                                  </IconButton>
+                                </Tooltip>
+                              </React.Fragment>
+                            )}
+                          </React.Fragment>
+                        ) : column.id === 'serial' ? (
+                          value
+                        ) : isEditing ? (
+                          <TextField
+                            name={column.id}
+                            value={editedRowData[column.id] || ''}
+                            onChange={handleFieldChange}
+                            size='small'
+                          />
+                        ) : column.format ? (
+                          column.format(value)
+                        ) : (
+                          value
+                        )}
+                      </TableCell>
+                    )
+                  })}
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 25, 100]}
           component='div'
-          count={FilterData?.length ? handleDataFilter()?.lenght : Datalist.length}
+          count={filteredData.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
