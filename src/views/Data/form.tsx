@@ -2,6 +2,8 @@
 
 import * as React from 'react'
 
+import axios from 'axios'
+
 import Button from '@mui/material/Button'
 import CssBaseline from '@mui/material/CssBaseline'
 import TextField from '@mui/material/TextField'
@@ -13,7 +15,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { useDispatch } from 'react-redux'
 
 import { insertDataList } from '@/redux/reducers/data' // Adjust path if necessary
-import { insertData } from '@/@core/api/common_api' // Adjust path if necessary
+// import { insertData } from '@/@core/api/common_api' // Adjust path if necessary
 import { handleToast } from '@/utils/utils'
 
 interface UserFormProps {
@@ -25,26 +27,51 @@ const defaultTheme = createTheme()
 const UserForm: React.FC<UserFormProps> = ({ setDialog }) => {
   const dispatch = useDispatch()
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault()
+  //   const data = new FormData(event.currentTarget)
+
+  //   try {
+  //     const res = await insertData({
+  //       email: data.get('email') as string,
+  //       password: data.get('password') as string,
+  //       firstName: data.get('firstName') as string,
+  //       lastName: data.get('lastName') as string,
+  //       mobile: data.get('mobile') as string
+  //     })
+
+  //     if (res.status === 1) {
+  //       dispatch(insertDataList(res.data))
+  //       setDialog(false)
+  //       handleToast(res.status, res.description)
+  //     }
+  //   } catch (err) {
+  //     alert(err)
+  //   }
+  // }
+
+  const handleSubmit1 = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
+    const basePath = process.env.NEXT_PUBLIC_BASEPATH || ''
 
     try {
-      const res = await insertData({
+      const res = await axios.post(`${basePath}/api/data`, {
         email: data.get('email') as string,
         password: data.get('password') as string,
         firstName: data.get('firstName') as string,
         lastName: data.get('lastName') as string,
-        mobile: data.get('mobile') as string
+        mobile: data.get('mobile') as string,
+        action: 'insert'
       })
 
-      if (res.status === 1) {
-        dispatch(insertDataList(res.data))
+      if (res.data.status === 1) {
+        dispatch(insertDataList(res.data.data))
         setDialog(false)
-        handleToast(res.status, res.description)
+        handleToast(res.data.status, res.data.description)
       }
-    } catch (err) {
-      alert(err)
+    } catch (error) {
+      console.error('Error adding user:', error)
     }
   }
 
@@ -52,7 +79,7 @@ const UserForm: React.FC<UserFormProps> = ({ setDialog }) => {
     <ThemeProvider theme={defaultTheme}>
       <Container component='main' maxWidth='xs'>
         <CssBaseline />
-        <Box component='form' noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+        <Box component='form' noValidate onSubmit={handleSubmit1} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField

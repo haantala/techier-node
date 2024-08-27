@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 
+import axios from 'axios'
 import Paper from '@mui/material/Paper'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -15,7 +16,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Icon } from '@iconify-icon/react'
 
 import UserForm from './form'
-import { deleteData, getData, updateData } from '@/@core/api/common_api'
+import {} from // deleteData
+
+//  getData,
+// updateData
+'@/@core/api/common_api'
 import { deleteDataList, getDataList, updateDataList } from '@/redux/reducers/data'
 import { deleteSweetAlert, handleToast } from '@/utils/utils'
 
@@ -55,15 +60,29 @@ const StickyHeadTable = () => {
     setPage(0)
   }
 
-  const handleGetData = async () => {
-    try {
-      const res = await getData()
+  // const handleGetData = async () => {
+  //   try {
+  //     const res = await getData()
 
-      if (res.status) {
-        dispatch(getDataList(res.data))
+  //     if (res.status) {
+  //       dispatch(getDataList(res.data))
+  //     }
+  //   } catch (err) {
+  //     alert(err)
+  //   }
+  // }
+
+  const handleGetData = async () => {
+    const basePath = process.env.NEXT_PUBLIC_BASEPATH || ''
+
+    try {
+      const res = await axios.get(`${basePath}/api/data`)
+
+      if (res.data.status === 1) {
+        dispatch(getDataList(res.data.data))
       }
-    } catch (err) {
-      alert(err)
+    } catch (error) {
+      console.error('Error Get user:', error)
     }
   }
 
@@ -95,20 +114,42 @@ const StickyHeadTable = () => {
     setEditedRowData(row)
   }
 
+  // const handleDeleteData = async (id: any) => {
+  //   try {
+  //     const result = await deleteSweetAlert({})
+
+  //     if (result.isConfirmed) {
+  //       const res = await deleteData({ data_id: id })
+
+  //       if (res.status === 1) {
+  //         dispatch(deleteDataList(id))
+  //         handleToast(res.status, res.description)
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.error(err)
+  //   }
+  // }
+
   const handleDeleteData = async (id: any) => {
+    const basePath = process.env.NEXT_PUBLIC_BASEPATH || ''
+
     try {
       const result = await deleteSweetAlert({})
 
       if (result.isConfirmed) {
-        const res = await deleteData({ data_id: id })
+        const res = await axios.post(`${basePath}/api/data`, {
+          data_id: id,
+          action: 'delete'
+        })
 
-        if (res.status === 1) {
+        if (res.data.status === 1) {
           dispatch(deleteDataList(id))
-          handleToast(res.status, res.description)
+          handleToast(res.data.status, res.data.description)
         }
       }
     } catch (err) {
-      console.error(err)
+      console.error('Error Delete Data:', err)
     }
   }
 
@@ -119,16 +160,36 @@ const StickyHeadTable = () => {
     })
   }
 
-  const handleSave = async () => {
-    try {
-      const res = await updateData(editedRowData)
+  // const handleSave = async () => {
+  //   try {
+  //     const res = await updateData(editedRowData)
 
-      if (res.status === 1) {
-        dispatch(updateDataList(res.data))
-        handleToast(res.status, res.description)
+  //     if (res.status === 1) {
+  //       dispatch(updateDataList(res.data))
+  //       handleToast(res.status, res.description)
+  //     }
+  //   } catch (err) {
+  //     console.error(err)
+  //   }
+
+  //   setEditingRowId(null)
+  // }
+
+  const handleSave = async () => {
+    const basePath = process.env.NEXT_PUBLIC_BASEPATH || ''
+
+    try {
+      const res = await axios.post(`${basePath}/api/data`, {
+        ...editedRowData,
+        action: 'update'
+      })
+
+      if (res.data.status === 1) {
+        dispatch(updateDataList(res.data.data))
+        handleToast(res.data.status, res.data.description)
       }
-    } catch (err) {
-      console.error(err)
+    } catch (error) {
+      console.error('Error Updating Data:', error)
     }
 
     setEditingRowId(null)
